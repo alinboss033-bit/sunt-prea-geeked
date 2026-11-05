@@ -1,0 +1,23 @@
+name: Build VST3
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+jobs:
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configure
+        run: cmake -B build -A x64
+      - name: Build
+        run: cmake --build build --config Release --parallel
+      - name: Collect VST3
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force dist | Out-Null
+          Get-ChildItem -Path build -Recurse -Directory -Filter *.vst3 | ForEach-Object { Copy-Item $_.FullName dist -Recurse -Force }
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Sunt-prea-geeked-VST3
+          path: dist
